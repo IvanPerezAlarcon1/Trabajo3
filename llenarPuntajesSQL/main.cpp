@@ -15,12 +15,12 @@ int main(int argc, char **argv) {
   std::string nombreBBDD;
   std::string usuario;
   std::string contrasena;
-  std::string ip("localhost");
+  std::string ip("127.0.0.1");
   std::string puerto("5432");
 
   if (argc < 4) {
     std::cerr << "Faltan argumentos, formato <nombre BBDD> <usuario> "
-                 "<contraseña> <IP servidor = localhost> <puerto = 5432>"
+                 "<contraseña> <IP servidor = 127.0.0.1> <puerto = 5432>"
               << std::endl;
     return EXIT_FAILURE;
   }
