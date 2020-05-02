@@ -8,21 +8,44 @@
 #define bigInt unsigned long long
 
 size_t numeroAleatorio() { return 750 - (rand() % 276); }
-void llenarArchivo(bigInt, bigInt);
+void llenarBaseDatos(bigInt, bigInt, const std::string &);
 void participante();
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
+  std::string nombreBBDD;
+  std::string usuario;
+  std::string contrasena;
+  std::string ip("localhost");
+  std::string puerto("5432");
+
+  if (argc < 4) {
+    std::cerr << "Faltan argumentos, formato <nombre BBDD> <usuario> "
+                 "<contraseña> <IP servidor = localhost> <puerto = 5432>"
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  nombreBBDD = argv[1];
+  usuario = argv[2];
+  contrasena = argv[3];
+  if (argc > 4) ip = argv[4];
+  if (argc > 5) puerto = argv[5];
+  char configConexion[256];
+
+  sprintf(configConexion, "dbname=%s user=%s password=%s hostaddr=%s port=%s",
+          nombreBBDD.c_str(), usuario.c_str(), contrasena.c_str(), ip.c_str(),
+          puerto.c_str());
+
   bigInt rutInicio = 14575191, rutTermino = 19843284;
-  llenarArchivo(rutInicio, rutTermino);
+  llenarBaseDatos(rutInicio, rutTermino, configConexion);
   participante();
 
   return EXIT_SUCCESS;
 }
 
-void llenarArchivo(bigInt rutInicio, bigInt rutTermino) {
-  pqxx::connection conexion(
-      "dbname=psudb user=psu password=seba1331\
-                 hostaddr=127.0.0.1 port=54322");
+void llenarBaseDatos(bigInt rutInicio, bigInt rutTermino,
+                     const std::string &configuracion) {
+  pqxx::connection conexion(configuracion);
   ;
   pqxx::work transaccion(conexion);
   srand(time(NULL));

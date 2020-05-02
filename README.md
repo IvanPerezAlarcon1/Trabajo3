@@ -10,8 +10,9 @@ make -C llenarPuntajesSQL
 ```
 ## Ejecucion
 ```
-time ./llenarPuntajesSQL/dist/programa
+time ./llenarPuntajesSQL/dist/programa <nombre base datos> <nombre usuario> <contraseña> <ip (localhost)> <puerto (5432)>
 ```
+Parametros IP y puerto son opcionales, con valores por defecto localhost y 5432 respectivamente.
 ## Integrantes
 - Léster Vasquez
 - Ivan Pérez
