@@ -1,7 +1,4 @@
 # PuntajesPSU_SQL
-<<<<<<< Updated upstream
- 
-=======
 ## Descripcion
 Este repositorio contiene un programa en C++ (llenarPuntajesSQL) para llenar una base de datos PostgreSQL con registros de la forma rut asociado de 6 numeros aleatorios correspondientes a puntajes PSU.Genera un rango aproximado de 5 millones de lineas de texto.
 
@@ -19,4 +16,3 @@ time ./llenarPuntajesSQL/dist/programa
 - Léster Vasquez
 - Ivan Pérez
 - Sebastian Pérez
->>>>>>> Stashed changes
