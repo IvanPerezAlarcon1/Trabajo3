@@ -1,14 +1,13 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
+#include <fstream>
 #include <iostream>
 #include <pqxx/pqxx>
 
 typedef unsigned long long bigInt;
 
-size_t numeroAleatorio() { return 750 - (rand() % 276); }
-void llenarBaseDatos(bigInt, bigInt, const std::string &);
+pqxx::result leerBaseDatos(const std::string &);
+void llenarArchivo(const pqxx::result &, std::ofstream &);
 void participante();
 
 int main(int argc, char **argv) {
@@ -17,6 +16,7 @@ int main(int argc, char **argv) {
   std::string contrasena;
   std::string ip("127.0.0.1");
   std::string puerto("5432");
+  std::ofstream archivoSalida("puntajesPromedio-SQL.csv");
 
   if (argc < 4) {
     std::cerr << "Faltan argumentos, formato <nombre BBDD> <usuario> "
@@ -36,47 +36,40 @@ int main(int argc, char **argv) {
           nombreBBDD.c_str(), usuario.c_str(), contrasena.c_str(), ip.c_str(),
           puerto.c_str());
 
-  bigInt rutInicio = 14575191, rutTermino = 19843284;
-
   try {
-    llenarBaseDatos(rutInicio, rutTermino, configConexion);
+    auto resultado = leerBaseDatos(configConexion);
+    llenarArchivo(resultado, archivoSalida);
   } catch (const std::exception &e) {
     std::cerr << e.what() << '\n';
     return EXIT_FAILURE;
   }
 
   participante();
-
   return EXIT_SUCCESS;
 }
 
-void llenarBaseDatos(bigInt rutInicio, bigInt rutTermino,
-                     const std::string &configuracion) {
-  pqxx::connection conexion(configuracion);
-  ;
-  pqxx::work transaccion(conexion);
-  srand(time(NULL));
-  for (bigInt rut = rutInicio; rut <= rutTermino; rut++) {
-    int nem = numeroAleatorio();
-    int ranking = numeroAleatorio();
-    int matematica = numeroAleatorio();
-    int lenguaje = numeroAleatorio();
-    int ciencias = numeroAleatorio();
-    int historia = numeroAleatorio();
-    char query[256];
-    sprintf(
-        query,
-        "INSERT INTO puntajes (rut, nem, ranking, matematica, "
-        "lenguaje,ciencias, historia) VALUES (%llu, %d, %d, %d, %d, %d, %d)",
-        rut, nem, ranking, matematica, lenguaje, ciencias, historia);
-
-    transaccion.exec(query);
+void llenarArchivo(const pqxx::result &resultado, std::ofstream &salida) {
+  std::istream_iterator<std::string> finStream;
+  for (const auto &registro : resultado) {
+    salida << registro[0].c_str() << ';' << registro[1].c_str() << '\n';
   }
+}
+
+pqxx::result leerBaseDatos(const std::string &configuracion) {
+  pqxx::connection conexion(configuracion);
+  pqxx::work transaccion(conexion);
+
+  auto resultado = transaccion.exec(
+      "SELECT rut, ROUND(((nem + ranking + matematica + lenguaje + ciencias + "
+      "historia ) / 6.0),2) as promedio "
+      "FROM puntajes");
   transaccion.commit();
+  return resultado;
 }
 
 void participante() {
   std::cout << std::endl << "=== Tarea ===" << std::endl;
   std::cout << std::endl << "Sebastián Pérez Berrios" << std::endl;
-  std::cout << std::endl << "subida de puntajes a PostgreSQL" << std::endl;
+  std::cout << std::endl
+            << "escritura de promedios a archivo desde PostgreSQL" << std::endl;
 }
