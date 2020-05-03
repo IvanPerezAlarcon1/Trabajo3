@@ -6,7 +6,8 @@
 
 typedef unsigned int Rut;
 
-void leerBaseDatosAarchivo(const std::string &, std::ostream &);
+void leerBaseDatos(const std::string &, std::ostream &);
+void escribirArchivo(pqxx::icursorstream &, std::ostream &);
 void participante();
 
 int main(int argc, char **argv) {
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
           puerto.c_str());
 
   try {
-    leerBaseDatosAarchivo(configConexion, archivoSalida);
+    leerBaseDatos(configConexion, archivoSalida);
   } catch (const std::exception &e) {
     std::cerr << e.what() << '\n';
     return EXIT_FAILURE;
@@ -46,23 +47,28 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-void leerBaseDatosAarchivo(const std::string &configuracion, std::ostream &salida) {
+void leerBaseDatos(const std::string &configuracion, std::ostream &salida) {
   pqxx::connection conexion(configuracion);
   pqxx::work transaccion(conexion);
   std::string query =
       "SELECT rut, ROUND(((nem + ranking + matematica + lenguaje + ciencias + "
       "historia ) / 6.0),2) as promedio "
       "FROM puntajes";
-  pqxx::icursorstream streamLectura(transaccion, query, "Promedios", 100000);
+  size_t particion = 100000;
+  pqxx::icursorstream streamLectura(transaccion, query, "Promedios", particion);
 
+  escribirArchivo(streamLectura, salida);
+
+  transaccion.commit();
+}
+
+void escribirArchivo(pqxx::icursorstream &streamLectura, std::ostream &salida) {
   for (auto iterador = pqxx::icursor_iterator(streamLectura);
-       iterador < pqxx::icursor_iterator(); iterador++) {
+       iterador != pqxx::icursor_iterator(); iterador++) {
     for (const auto &registro : *iterador) {
       salida << registro[0].c_str() << ';' << registro[1].c_str() << '\n';
     }
   }
-
-  transaccion.commit();
 }
 
 void participante() {
