@@ -5,10 +5,12 @@
 #include <iostream>
 #include <pqxx/pqxx>
 
-typedef unsigned long long bigInt;
+typedef unsigned int Rut;
+typedef std::array<std::string, 7> tupla;
 
 size_t numeroAleatorio() { return 750 - (rand() % 276); }
-void llenarBaseDatos(bigInt, bigInt, const std::string &);
+void llenarBaseDatos(Rut, Rut, const std::string &);
+void llenarFila(Rut, pqxx::stream_to &);
 void participante();
 
 int main(int argc, char **argv) {
@@ -36,7 +38,7 @@ int main(int argc, char **argv) {
           nombreBBDD.c_str(), usuario.c_str(), contrasena.c_str(), ip.c_str(),
           puerto.c_str());
 
-  bigInt rutInicio = 14575191, rutTermino = 19843284;
+  Rut rutInicio = 14575191, rutTermino = 19843284;
 
   try {
     llenarBaseDatos(rutInicio, rutTermino, configConexion);
@@ -50,29 +52,39 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-void llenarBaseDatos(bigInt rutInicio, bigInt rutTermino,
+void llenarBaseDatos(Rut rutInicio, Rut rutTermino,
                      const std::string &configuracion) {
   pqxx::connection conexion(configuracion);
-  ;
   pqxx::work transaccion(conexion);
-  srand(time(NULL));
-  for (bigInt rut = rutInicio; rut <= rutTermino; rut++) {
-    int nem = numeroAleatorio();
-    int ranking = numeroAleatorio();
-    int matematica = numeroAleatorio();
-    int lenguaje = numeroAleatorio();
-    int ciencias = numeroAleatorio();
-    int historia = numeroAleatorio();
-    char query[256];
-    sprintf(
-        query,
-        "INSERT INTO puntajes (rut, nem, ranking, matematica, "
-        "lenguaje,ciencias, historia) VALUES (%llu, %d, %d, %d, %d, %d, %d)",
-        rut, nem, ranking, matematica, lenguaje, ciencias, historia);
+  std::string tablaObjetivo("puntajes");
 
-    transaccion.exec(query);
+  tupla columnas{"rut",      "nem",      "ranking", "matematica",
+                 "lenguaje", "ciencias", "historia"};
+
+  pqxx::stream_to streamLlenado(transaccion, tablaObjetivo, columnas);
+  srand(time(NULL));
+
+  for (Rut rut = rutInicio; rut <= rutTermino; rut++) {
+    llenarFila(rut, streamLlenado);
   }
+  streamLlenado.complete();
   transaccion.commit();
+}
+
+void llenarFila(Rut rut, pqxx::stream_to &streamLlenado) {
+  auto nem = std::to_string(numeroAleatorio());
+  auto ranking = std::to_string(numeroAleatorio());
+  auto matematica = std::to_string(numeroAleatorio());
+  auto lenguaje = std::to_string(numeroAleatorio());
+  auto ciencias = std::to_string(numeroAleatorio());
+  auto historia = std::to_string(numeroAleatorio());
+  streamLlenado << tupla{std::to_string(rut),
+                         nem,
+                         ranking,
+                         matematica,
+                         lenguaje,
+                         ciencias,
+                         historia};
 }
 
 void participante() {
