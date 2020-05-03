@@ -4,7 +4,7 @@
 #include <iostream>
 #include <pqxx/pqxx>
 
-#define bigInt unsigned long long
+typedef unsigned long long bigInt;
 
 pqxx::result leerBaseDatos(const std::string &);
 void llenarArchivo(const pqxx::result &, std::ofstream &);
@@ -36,10 +36,15 @@ int main(int argc, char **argv) {
           nombreBBDD.c_str(), usuario.c_str(), contrasena.c_str(), ip.c_str(),
           puerto.c_str());
 
-  auto resultado = leerBaseDatos(configConexion);
-  llenarArchivo(resultado, archivoSalida);
-  participante();
+  try {
+    auto resultado = leerBaseDatos(configConexion);
+    llenarArchivo(resultado, archivoSalida);
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << '\n';
+    return EXIT_FAILURE;
+  }
 
+  participante();
   return EXIT_SUCCESS;
 }
 

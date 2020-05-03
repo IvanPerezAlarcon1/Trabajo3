@@ -5,7 +5,7 @@
 #include <iostream>
 #include <pqxx/pqxx>
 
-#define bigInt unsigned long long
+typedef unsigned long long bigInt;
 
 size_t numeroAleatorio() { return 750 - (rand() % 276); }
 void llenarBaseDatos(bigInt, bigInt, const std::string &);
@@ -37,7 +37,14 @@ int main(int argc, char **argv) {
           puerto.c_str());
 
   bigInt rutInicio = 14575191, rutTermino = 19843284;
-  llenarBaseDatos(rutInicio, rutTermino, configConexion);
+
+  try {
+    llenarBaseDatos(rutInicio, rutTermino, configConexion);
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << '\n';
+    return EXIT_FAILURE;
+  }
+
   participante();
 
   return EXIT_SUCCESS;
@@ -71,6 +78,5 @@ void llenarBaseDatos(bigInt rutInicio, bigInt rutTermino,
 void participante() {
   std::cout << std::endl << "=== Tarea ===" << std::endl;
   std::cout << std::endl << "Sebastián Pérez Berrios" << std::endl;
-  std::cout << std::endl
-            << "subida de puntajes a PostgreSQL" << std::endl;
+  std::cout << std::endl << "subida de puntajes a PostgreSQL" << std::endl;
 }
