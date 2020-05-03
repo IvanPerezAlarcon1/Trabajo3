@@ -49,7 +49,7 @@ void llenarBaseDatos(bigInt rutInicio, bigInt rutTermino,
   ;
   pqxx::work transaccion(conexion);
   srand(time(NULL));
-  for (bigInt rut = rutInicio; rut < rutTermino; rut++) {
+  for (bigInt rut = rutInicio; rut <= rutTermino; rut++) {
     int nem = numeroAleatorio();
     int ranking = numeroAleatorio();
     int matematica = numeroAleatorio();
@@ -72,5 +72,5 @@ void participante() {
   std::cout << std::endl << "=== Tarea ===" << std::endl;
   std::cout << std::endl << "Sebastián Pérez Berrios" << std::endl;
   std::cout << std::endl
-            << "creacion de archivo CSV usando OpenMP C++" << std::endl;
+            << "subida de puntajes a PostgreSQL" << std::endl;
 }
